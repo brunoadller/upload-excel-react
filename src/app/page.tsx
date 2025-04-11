@@ -48,14 +48,14 @@ const Home = () => {
       const worksheetName = workbook.SheetNames[0]
       const worksheet = workbook.Sheets[worksheetName]
       const rowData = XLSX.utils.sheet_to_json<Record<string, any>>(worksheet) 
-      
+      console.log(rowData)
       const data: DataRelatorioPrisma[] = rowData.map(item => ({
         cicloDeAplicacao: item["Ciclo de Aplicação"],
-        matriculaAluno: item["Matrícula"],
+        matriculaAluno: item["Matricula Aluno"],
         modalidade: item["Modalidade"],
-        momeAluno: String(item["Nome do Aluno"]),
+        momeAluno: item["Nome Aluno"],
         polo: item["Polo"],
-        prazoRealização: item["Prazo Realização"],
+        prazoRealização: item["Prazo p/ Realização"],
         curso: item['Curso'],
         prova: item["Prova"],
         semestre: item["Semestre"],
@@ -65,7 +65,7 @@ const Home = () => {
 
     }
      excelData.map(item => {
-       console.log(item.polo)
+       console.log(item.momeAluno)
      })
   }
 

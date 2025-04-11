@@ -4,7 +4,7 @@ export type DataRelatorioPrisma = {
   modalidade: string
   momeAluno: string
   polo: string
-  prazoRealização: string
+  prazoRealização: number
   curso: string
   prova: string
   semestre: string
