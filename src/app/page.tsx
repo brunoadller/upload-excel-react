@@ -1,23 +1,26 @@
 "use client"
 
 import Table from "@/components/Table";
-import { DataRelatorioPrisma } from "@/types/dataExcelTypes";
+import { DataRelatorioColaborar, DataRelatorioPrisma } from "@/types/dataExcelTypes";
 import { ChangeEvent, EventHandler, useState } from "react";
 import * as XLSX from 'xlsx'
 
 const Home = () => {
-  const matriculaAlunoPrisma: DataRelatorioPrisma[] = []
+  const fileType = ["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"]
   //onchange states
   const [excelFile, setExcelFile] = useState<File>()
+  const [excelFileColaborar, setExcelFileColaborar] = useState<File>()
+
+  //VALIDATE
   const [typeError, setTypeError] = useState<string | null>(null)
+  
   // submit state
   const [excelData, setExcelData] = useState<DataRelatorioPrisma[]>([])
+  const [excelDataColaborar, setExcelDataColaborar] = useState<DataRelatorioColaborar[]>([])
 
 
   //onchange event
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
-      let fileType = ["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"]
-
       if(e.target.files && e.target.files.length > 0){
         const selectedFile = e.target.files[0]
         if(selectedFile){
@@ -40,16 +43,25 @@ const Home = () => {
   }
 
   //submit event
-
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if(excelFile !== null){
-      const workbook =  XLSX.read(excelFile, {type: 'buffer'})
-      const worksheetName = workbook.SheetNames[0]
-      const worksheet = workbook.Sheets[worksheetName]
-      const rowData = XLSX.utils.sheet_to_json<Record<string, any>>(worksheet) 
-      console.log(rowData)
-      const data: DataRelatorioPrisma[] = rowData.map(item => ({
+      //MANIPULANDO O ARQUIVO DO PRISMA (QUE NÃO FIZERAM PROVA)
+      const workbookPrisma =  XLSX.read(excelFile, {type: 'buffer'})
+      const worksheetNamePrisma = workbookPrisma.SheetNames[0]
+      const worksheet = workbookPrisma.Sheets[worksheetNamePrisma]
+      const rowDataPrisma = XLSX.utils.sheet_to_json<Record<string, any>>(worksheet) 
+      //MANIPULANDO O ARQUIVO DE RELATORIO COLABORAR
+      const workbookColaborar = XLSX.read(excelFileColaborar, {type: 'buffer'})
+      const worksheetNameColaborar = workbookColaborar.SheetNames[0]
+      const worksheetColaborar = workbookColaborar.Sheets[worksheetNameColaborar]
+      const rowDataColaborar = XLSX.utils.sheet_to_json<Record<string, any>>(worksheetColaborar)
+
+      
+    console.log(rowDataPrisma)
+    console.log(rowDataColaborar)
+    
+      const dataPrisma: DataRelatorioPrisma[] = rowDataPrisma.map(item => ({
         cicloDeAplicacao: item["Ciclo de Aplicação"],
         matriculaAluno: item["Matricula Aluno"],
         modalidade: item["Modalidade"],
@@ -60,23 +72,69 @@ const Home = () => {
         prova: item["Prova"],
         semestre: item["Semestre"],
       }))
+      const dataColaborar: DataRelatorioColaborar[] = rowDataColaborar.map(item => ({
+        marca: item["MARCA"],
+        polo: item["POLO"],
+        matricula: item["MATRICULA"],
+        cpf: item["CPF"],
+        nome: item["NOME"],
+        curso: item["CURSO"],
+        semestre: item["SEMESTRE"],
+        oferta: item["OFERTA"],
+        modalidade: item["MODALIDADE"],
+        email: item["EMAIL"],
+        foneResidencial: item["FONE_RESIDENCIAL"],
+        foneComercial: item["FONE_COMERCIAL"],
+        foneCelular: item["FONE_CELULAR"],
+        devedor: item["DEVEDOR"],
+        documentos:item["DOCUMENTOS"],
+        situacao: item["SITUACAO_MATRICULA"],
+        dataMatricula: item["DATA_MATRICULA"],
+        plano: item['PLANO'],
+      
+      }))
 
-      setExcelData(data)
-
+      setExcelData(dataPrisma)
+      setExcelDataColaborar(dataColaborar)
     }
-     excelData.map(item => {
-       console.log(item.momeAluno)
-     })
-  }
 
+    setTimeout(() => {
+      console.log(excelData)
+      console.log(excelDataColaborar)
+    }, 5000)
+  }
+  const handleFileColaborar = (e: React.ChangeEvent<HTMLInputElement> ) => {
+    if(e.target.files && e.target.files.length > 0){
+      const selectedFileColaborar = e.target.files[0]
+      if(selectedFileColaborar){
+        if(selectedFileColaborar&&fileType.includes(selectedFileColaborar.type)){
+          setTypeError(null)
+          let reader = new FileReader()
+          reader.readAsArrayBuffer(selectedFileColaborar)
+          reader.onload = (e: ProgressEvent<FileReader>) => {
+            setExcelFileColaborar(e.target?.result)
+          }
+        }else{
+          setTypeError("Por Favor, informe o tipo de arquivo correto")
+        }
+      }else{
+        console.log("Error file")
+      }
+    }
+  }
   return(
-    <div className="w-full h-full  bg-sky-950 flex flex-col items-center gap-10 p-5">
+    <div className="w-full h-[100vh]  bg-sky-950 flex flex-col items-center gap-10 p-5">
       <form  onSubmit={handleSubmit} className="flex flex-col gap-4 items-center justify-center ">
         <input role="alert" type="file" className="
         file:bg-slate-900
         file:p-3
         file:rounded-2xl
         file:text-2xl file:py-2 cursor-pointer"  required onChange={handleFile}/>
+         <input role="alert" type="file" className="
+        file:bg-slate-900
+        file:p-3
+        file:rounded-2xl
+        file:text-2xl file:py-2 cursor-pointer"  required onChange={handleFileColaborar}/>
         <button onClick={() => console.log('Clique detectado')} type="submit" className="bg-slate-900 w-full py-3 rounded-2xl text-2xl  cursor-pointer">UPLOAD</button>
         {
           typeError && (
@@ -84,20 +142,6 @@ const Home = () => {
           )
         }
       </form>
-
-      <div className="">
-      {
-        excelData?(
-          excelData.map((item, index) => {
-            return (
-               <Table item = {item} index={index}/>
-            )
-          })
-        ): (
-          <div>Sem arquivo para upload</div>
-        )
-      }
-      </div>
     </div>
   )
 }
