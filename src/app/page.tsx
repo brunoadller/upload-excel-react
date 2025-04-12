@@ -31,6 +31,7 @@ const Home = () => {
 
         }else{
           setTypeError("Por favor, informe o tipo de arquivo correto")
+         
       
         }
         }else{
@@ -48,7 +49,7 @@ const Home = () => {
       const worksheetName = workbook.SheetNames[0]
       const worksheet = workbook.Sheets[worksheetName]
       const rowData = XLSX.utils.sheet_to_json<Record<string, any>>(worksheet) 
-      console.log(rowData)
+     
       const data: DataRelatorioPrisma[] = rowData.map(item => ({
         cicloDeAplicacao: item["Ciclo de Aplicação"],
         matriculaAluno: item["Matricula Aluno"],
@@ -64,9 +65,7 @@ const Home = () => {
       setExcelData(data)
 
     }
-     excelData.map(item => {
-       console.log(item.momeAluno)
-     })
+   
   }
 
   return(
@@ -77,7 +76,7 @@ const Home = () => {
         file:p-3
         file:rounded-2xl
         file:text-2xl file:py-2 cursor-pointer"  required onChange={handleFile}/>
-        <button onClick={() => console.log('Clique detectado')} type="submit" className="bg-slate-900 w-full py-3 rounded-2xl text-2xl  cursor-pointer">UPLOAD</button>
+        <button id="buttonUpload" onClick={() => console.log('Clique detectado')} type="submit" className="bg-slate-900 w-full py-3 rounded-2xl text-2xl  cursor-pointer">UPLOAD</button>
         {
           typeError && (
             <div  className="bg-red-500 opacity-60 px-2 rounded-2xl">{typeError}</div>
