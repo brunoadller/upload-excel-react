@@ -56,11 +56,8 @@ const Home = () => {
       const worksheetNameColaborar = workbookColaborar.SheetNames[0]
       const worksheetColaborar = workbookColaborar.Sheets[worksheetNameColaborar]
       const rowDataColaborar = XLSX.utils.sheet_to_json<Record<string, any>>(worksheetColaborar)
-
-      
-    console.log(rowDataPrisma)
-    console.log(rowDataColaborar)
     
+      
       const dataPrisma: DataRelatorioPrisma[] = rowDataPrisma.map(item => ({
         cicloDeAplicacao: item["Ciclo de Aplicação"],
         matriculaAluno: item["Matricula Aluno"],
@@ -93,7 +90,7 @@ const Home = () => {
         plano: item['PLANO'],
       
       }))
-
+      
       setExcelData(dataPrisma)
       setExcelDataColaborar(dataColaborar)
     }
