@@ -18,6 +18,10 @@ const Home = () => {
   const [excelData, setExcelData] = useState<DataRelatorioPrisma[]>([])
   const [excelDataColaborar, setExcelDataColaborar] = useState<DataRelatorioColaborar[]>([])
 
+  // arrays de numeros de matriculas
+  const numMatriculaPrisma: string[] = []
+  const numMatriculaPolo: string[] = []
+
 
   //onchange event
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +47,7 @@ const Home = () => {
   }
 
   //submit event
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit =  (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if(excelFile !== null){
       //MANIPULANDO O ARQUIVO DO PRISMA (QUE NÃO FIZERAM PROVA)
@@ -58,7 +62,7 @@ const Home = () => {
       const rowDataColaborar = XLSX.utils.sheet_to_json<Record<string, any>>(worksheetColaborar)
     
       
-      const dataPrisma: DataRelatorioPrisma[] = rowDataPrisma.map(item => ({
+      const dataPrisma: DataRelatorioPrisma[] =  rowDataPrisma.map(item => ({
         cicloDeAplicacao: item["Ciclo de Aplicação"],
         matriculaAluno: item["Matricula Aluno"],
         modalidade: item["Modalidade"],
@@ -94,6 +98,9 @@ const Home = () => {
       setExcelData(dataPrisma)
       setExcelDataColaborar(dataColaborar)
     }
+    numMatriculaPrisma = excelData.filter(item => item.matriculaAluno) 
+
+    
 
     setTimeout(() => {
       console.log(excelData)
