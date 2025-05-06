@@ -8,6 +8,7 @@ import { ChangeEvent, EventHandler, useState } from "react";
 import * as XLSX from 'xlsx'
 import EXCELJS from 'exceljs'
 import  {saveAs } from 'file-saver'
+import { CheckFilePolo } from "@/types/checkPoloFile";
 
 const Home = () => {
   const fileType = ["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"]
@@ -18,22 +19,8 @@ const Home = () => {
   const [excelFileColaborarPolo1, setExcelFileColaborarPolo1] = useState<File>()
   const [excelFileColaborarPolo2, setExcelFileColaborarPolo2] = useState<File>()
   const [excelFileColaborarPolo3, setExcelFileColaborarPolo3] = useState<File>()
-
-  const [phoneResult, setPhoneResult] = useState<string[]>([])
-
   //VALIDATE
   const [typeError, setTypeError] = useState<string | null>(null)
-  
-  // submit state
-  const [excelData, setExcelData] = useState<DataRelatorioPrisma[]>([])
-  const [excelDataColaborarPolo1, setExcelDataColaborarPolo1] = useState<DataRelatorioColaborar[]>([])
-  const [excelDataColaborarPolo2, setExcelDataColaborarPolo2] = useState<DataRelatorioColaborar[]>([])
-  const [excelDataColaborarPolo3, setExcelDataColaborarPolo3] = useState<DataRelatorioColaborar[]>([])
-
-
-  // arrays de numeros de matriculas
-  const numMatriculaPrisma: string[] = []
-  const numMatriculaPolo: string[] = []
   //colca para realizar download da planilha
 
 
@@ -69,85 +56,25 @@ const Home = () => {
 
   //onchange event
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
-      if(e.target.files && e.target.files.length > 0){
-        const selectedFile = e.target.files[0]
-        if(selectedFile){
-        if(selectedFile&&fileType.includes(selectedFile.type)){
-          setTypeError(null)
-          let reader = new FileReader()
-          reader.readAsArrayBuffer(selectedFile)
-          reader.onload = (e: ProgressEvent<FileReader>) => {
-            setExcelFile(e.target.result)
-          }
-        }else{
-          setTypeError("Por favor, informe o tipo de arquivo correto")
-        }
-        }else{
-          console.log('Please select your file')
-        }
-      }
+    CheckFilePolo(e, setTypeError, setExcelFile, fileType)
   }
   const handleFileColaborarPolo1 = (e: React.ChangeEvent<HTMLInputElement> ) => {
-    if(e.target.files && e.target.files.length > 0){
-      const selectedFileColaborar = e.target.files[0]
-      if(selectedFileColaborar){
-        if(selectedFileColaborar&&fileType.includes(selectedFileColaborar.type)){
-          setTypeError(null)
-          let reader = new FileReader()
-          reader.readAsArrayBuffer(selectedFileColaborar)
-          reader.onload = (e: ProgressEvent<FileReader>) => {
-            setExcelFileColaborarPolo1(e.target?.result)
-          }
-        }else{
-          setTypeError("Por Favor, informe o tipo de arquivo correto")
-        }
-      }else{
-        console.log("Error file")
-      }
-    }
+    CheckFilePolo(e, setTypeError, setExcelFileColaborarPolo1, fileType)
   }
 
   const handleFileColaborarPolo2 = (e: React.ChangeEvent<HTMLInputElement> ) => {
-    if(e.target.files && e.target.files.length > 0){
-      const selectedFileColaborar = e.target.files[0]
-      if(selectedFileColaborar){
-        if(selectedFileColaborar&&fileType.includes(selectedFileColaborar.type)){
-          setTypeError(null)
-          let reader = new FileReader()
-          reader.readAsArrayBuffer(selectedFileColaborar)
-          reader.onload = (e: ProgressEvent<FileReader>) => {
-            setExcelFileColaborarPolo2(e.target?.result)
-          }
-        }else{
-          setTypeError("Por Favor, informe o tipo de arquivo correto")
-        }
-      }else{
-        console.log("Error file")
-      }
-    }
+    CheckFilePolo(e, setTypeError, setExcelFileColaborarPolo2, fileType)
   }
   const handleFileColaborarPolo3 = (e: React.ChangeEvent<HTMLInputElement> ) => {
-    if(e.target.files && e.target.files.length > 0){
-      const selectedFileColaborar = e.target.files[0]
-      if(selectedFileColaborar){
-        if(selectedFileColaborar&&fileType.includes(selectedFileColaborar.type)){
-          setTypeError(null)
-          let reader = new FileReader()
-          reader.readAsArrayBuffer(selectedFileColaborar)
-          reader.onload = (e: ProgressEvent<FileReader>) => {
-            setExcelFileColaborarPolo3(e.target?.result)
-          }
-        }else{
-          setTypeError("Por Favor, informe o tipo de arquivo correto")
-        }
-      }else{
-        console.log("Error file")
-      }
-    }
+    CheckFilePolo(e, setTypeError, setExcelFileColaborarPolo3, fileType) 
   }
   //submit event
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-   
+    let dataPrisma: DataRelatorioPrisma[] = []
+    let dataColaborarPolo1: DataRelatorioColaborar[] = []
+    let dataColaborarPolo2: DataRelatorioColaborar[] = []
+    let dataColaborarPolo3: DataRelatorioColaborar[] = []
+
     e.preventDefault()
 
     setLoading(true)
@@ -176,7 +103,7 @@ const Home = () => {
       const worksheetColaborarPolo3 = workbookColaborarPolo3.Sheets[worksheetNameColaborarPolo3]
       const rowDataColaborarPolo3 = XLSX.utils.sheet_to_json<Record<string, any>>(worksheetColaborarPolo3) 
     
-      const dataPrisma: DataRelatorioPrisma[] = rowDataPrisma.map(item => ({
+      dataPrisma = rowDataPrisma.map(item => ({
         cicloDeAplicacao: item["Ciclo de Aplicação"],
         matriculaAluno: String(item["Matricula Aluno"]),
         modalidade: item["Modalidade"],
@@ -187,7 +114,7 @@ const Home = () => {
         prova: item["Prova"],
         semestre: item["Semestre"],
       }))
-      const dataColaborarPolo1: DataRelatorioColaborar[] = rowDataColaborarPolo1.map(item => ({
+      dataColaborarPolo1  = rowDataColaborarPolo1.map(item => ({
         marca: item["MARCA"],
         polo: item["POLO"],
         matricula: String(item["MATRICULA"]),
@@ -208,7 +135,7 @@ const Home = () => {
         plano: item['PLANO'],
       
       }))
-      const dataColaborarPolo2: DataRelatorioColaborar[] = rowDataColaborarPolo2.map(item => ({
+      dataColaborarPolo2 = rowDataColaborarPolo2.map(item => ({
         marca: item["MARCA"],
         polo: item["POLO"],
         matricula: String(item["MATRICULA"]),
@@ -229,7 +156,7 @@ const Home = () => {
         plano: item['PLANO'],
       
       }))
-      const dataColaborarPolo3: DataRelatorioColaborar[] = rowDataColaborarPolo3.map(item => ({
+      dataColaborarPolo3 = rowDataColaborarPolo3.map(item => ({
         marca: item["MARCA"],
         polo: item["POLO"],
         matricula: String(item["MATRICULA"]),
@@ -253,15 +180,10 @@ const Home = () => {
       
       }))
      
-      setExcelData(dataPrisma)
-      setExcelDataColaborarPolo1(dataColaborarPolo1)
-      setExcelDataColaborarPolo2(dataColaborarPolo2)
-      setExcelDataColaborarPolo3(dataColaborarPolo3)
-      
     }
     
-    let filterMatriculaNumberPrisma: string[] = excelData.map(item => item.matriculaAluno)
-    const polos = [...excelDataColaborarPolo1,...excelDataColaborarPolo2,...excelDataColaborarPolo3]
+    let filterMatriculaNumberPrisma: string[] = dataPrisma.map(item => item.matriculaAluno)
+    const polos = [...dataColaborarPolo1,...dataColaborarPolo2,...dataColaborarPolo3]
     
     let filterMatriculaNumberColaborar: NumberAndPhonesColaborarPolo[] = polos.map(item => {
       return {
