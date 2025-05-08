@@ -1,10 +1,7 @@
 import { DataRelatorioPrisma } from '@/types/dataExcelTypes'
 import React from 'react'
 
-type Props ={
-    item: DataRelatorioPrisma
-    index: number
-}
+
 const Table = ({item, index}: Props ) => {
   return (
     <table className=' min-w-full text-sm' key={index}>

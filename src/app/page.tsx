@@ -4,13 +4,18 @@ import Table from "@/components/Table";
 import { filterNumbers } from "@/helpers/filterObjects";
 import { DataRelatorioColaborar, DataRelatorioPrisma } from "@/types/dataExcelTypes";
 import { NumberAndPhonesColaborarPolo } from "@/types/numberAndPhones";
-import { ChangeEvent, EventHandler, useState } from "react";
+import { ChangeEvent, EventHandler, useRef, useState } from "react";
 import * as XLSX from 'xlsx'
 import EXCELJS from 'exceljs'
 import  {saveAs } from 'file-saver'
-import { CheckFilePolo } from "@/types/checkPoloFile";
+import { checkFilePolo } from "@/types/checkPoloFile";
+import { returnSheetColaborar, returnSheetPrisma } from "@/helpers/returnSheets";
+import { readAndConvertSheets } from "@/helpers/worksheets";
+import { filterMatriculasNumberColaborar } from "@/helpers/filterMatriculasNumberColaborar";
 
 const Home = () => {
+  //ref
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const fileType = ["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"]
   //loading state
   const [loading, setLoading] = useState(false)
@@ -56,17 +61,16 @@ const Home = () => {
 
   //onchange event
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
-    CheckFilePolo(e, setTypeError, setExcelFile, fileType)
+    checkFilePolo(e, setTypeError, setExcelFile, fileType)
   }
   const handleFileColaborarPolo1 = (e: React.ChangeEvent<HTMLInputElement> ) => {
-    CheckFilePolo(e, setTypeError, setExcelFileColaborarPolo1, fileType)
+    checkFilePolo(e, setTypeError, setExcelFileColaborarPolo1, fileType)
   }
-
   const handleFileColaborarPolo2 = (e: React.ChangeEvent<HTMLInputElement> ) => {
-    CheckFilePolo(e, setTypeError, setExcelFileColaborarPolo2, fileType)
+    checkFilePolo(e, setTypeError, setExcelFileColaborarPolo2, fileType)
   }
   const handleFileColaborarPolo3 = (e: React.ChangeEvent<HTMLInputElement> ) => {
-    CheckFilePolo(e, setTypeError, setExcelFileColaborarPolo3, fileType) 
+    checkFilePolo(e, setTypeError, setExcelFileColaborarPolo3, fileType) 
   }
   //submit event
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -76,164 +80,103 @@ const Home = () => {
     let dataColaborarPolo3: DataRelatorioColaborar[] = []
 
     e.preventDefault()
-
     setLoading(true)
-    if(excelFile !== null){
+    if(excelFile && excelFileColaborarPolo1 && excelFileColaborarPolo2 && excelFileColaborarPolo3 !== null){
       //MANIPULANDO O ARQUIVO DO PRISMA (QUE NÃO FIZERAM PROVA)
-      const workbookPrisma =  XLSX.read(excelFile, {type: 'buffer'})
-      const worksheetNamePrisma = workbookPrisma.SheetNames[0]
-      const worksheet = workbookPrisma.Sheets[worksheetNamePrisma]
-      const rowDataPrisma = XLSX.utils.sheet_to_json<Record<string, any>>(worksheet) 
-  
+      const rowDataPrisma = readAndConvertSheets(excelFile as File)
       //MANIPULANDO O ARQUIVO DE RELATORIO COLABORAR polo 1
-      const workbookColaborarPolo1 =  XLSX.read(excelFileColaborarPolo1, {type: 'buffer'})
-      const worksheetNameColaborarPolo1 = workbookColaborarPolo1.SheetNames[0]
-      const worksheetColaborarPolo1 = workbookColaborarPolo1.Sheets[worksheetNameColaborarPolo1]
-      const rowDataColaborarPolo1 = XLSX.utils.sheet_to_json<Record<string, any>>(worksheetColaborarPolo1) 
-    
-       //MANIPULANDO O ARQUIVO DE RELATORIO COLABORAR polo 2
-       const workbookColaborarPolo2 =  XLSX.read(excelFileColaborarPolo2, {type: 'buffer'})
-       const worksheetNameColaborarPolo2 = workbookColaborarPolo2.SheetNames[0]
-       const worksheetColaborarPolo2 = workbookColaborarPolo2.Sheets[worksheetNameColaborarPolo2]
-       const rowDataColaborarPolo2 = XLSX.utils.sheet_to_json<Record<string, any>>(worksheetColaborarPolo2) 
-    
-        //MANIPULANDO O ARQUIVO DE RELATORIO COLABORAR polo 3
-      const workbookColaborarPolo3 =  XLSX.read(excelFileColaborarPolo3, {type: 'buffer'})
-      const worksheetNameColaborarPolo3 = workbookColaborarPolo3.SheetNames[0]
-      const worksheetColaborarPolo3 = workbookColaborarPolo3.Sheets[worksheetNameColaborarPolo3]
-      const rowDataColaborarPolo3 = XLSX.utils.sheet_to_json<Record<string, any>>(worksheetColaborarPolo3) 
-    
-      dataPrisma = rowDataPrisma.map(item => ({
-        cicloDeAplicacao: item["Ciclo de Aplicação"],
-        matriculaAluno: String(item["Matricula Aluno"]),
-        modalidade: item["Modalidade"],
-        momeAluno: item["Nome Aluno"],
-        polo: item["Polo"],
-        prazoRealização: item["Prazo p/ Realização"],
-        curso: item['Curso'],
-        prova: item["Prova"],
-        semestre: item["Semestre"],
-      }))
-      dataColaborarPolo1  = rowDataColaborarPolo1.map(item => ({
-        marca: item["MARCA"],
-        polo: item["POLO"],
-        matricula: String(item["MATRICULA"]),
-        cpf: item["CPF"],
-        nome: item["NOME"],
-        curso: item["CURSO"],
-        semestre: item["SEMESTRE"],
-        oferta: item["OFERTA"],
-        modalidade: item["MODALIDADE"],
-        email: item["EMAIL"],
-        foneResidencial: item["FONE_RESIDENCIAL"],
-        foneComercial: item["FONE_COMERCIAL"],
-        foneCelular: String(item["FONE_CELULAR"]),
-        devedor: item["DEVEDOR"],
-        documentos:item["DOCUMENTOS"],
-        situacao: item["SITUACAO_MATRICULA"],
-        dataMatricula: item["DATA_MATRICULA"],
-        plano: item['PLANO'],
-      
-      }))
-      dataColaborarPolo2 = rowDataColaborarPolo2.map(item => ({
-        marca: item["MARCA"],
-        polo: item["POLO"],
-        matricula: String(item["MATRICULA"]),
-        cpf: item["CPF"],
-        nome: item["NOME"],
-        curso: item["CURSO"],
-        semestre: item["SEMESTRE"],
-        oferta: item["OFERTA"],
-        modalidade: item["MODALIDADE"],
-        email: item["EMAIL"],
-        foneResidencial: item["FONE_RESIDENCIAL"],
-        foneComercial: item["FONE_COMERCIAL"],
-        foneCelular:  String(item["FONE_CELULAR"]),
-        devedor: item["DEVEDOR"],
-        documentos:item["DOCUMENTOS"],
-        situacao: item["SITUACAO_MATRICULA"],
-        dataMatricula: item["DATA_MATRICULA"],
-        plano: item['PLANO'],
-      
-      }))
-      dataColaborarPolo3 = rowDataColaborarPolo3.map(item => ({
-        marca: item["MARCA"],
-        polo: item["POLO"],
-        matricula: String(item["MATRICULA"]),
-        cpf: item["CPF"],
-        nome: item["NOME"],
-        curso: item["CURSO"],
-        semestre: item["SEMESTRE"],
-        oferta: item["OFERTA"],
-        modalidade: item["MODALIDADE"],
-        email: item["EMAIL"],
-        foneResidencial: item["FONE_RESIDENCIAL"],
-        foneComercial: item["FONE_COMERCIAL"],
-        foneCelular:String(item["FONE_CELULAR"]),
-        devedor: item["DEVEDOR"],
-
-
-        documentos:item["DOCUMENTOS"],
-        situacao: item["SITUACAO_MATRICULA"],
-        dataMatricula: item["DATA_MATRICULA"],
-        plano: item['PLANO'],
-      
-      }))
+      const rowDataColaborarPolo1 =  readAndConvertSheets(excelFileColaborarPolo1 as File)
+      //MANIPULANDO O ARQUIVO DE RELATORIO COLABORAR polo 2
+      const rowDataColaborarPolo2 =  readAndConvertSheets(excelFileColaborarPolo2 as File)
+      //MANIPULANDO O ARQUIVO DE RELATORIO COLABORAR polo 3
+      const rowDataColaborarPolo3 =  readAndConvertSheets(excelFileColaborarPolo3 as File)
+      //COLOCA AS PLANILHAS QUE FORAM TRANFORMADAS EM OBJETOS PARA FICAREM ORGANIZADAS COM SEUS RESPECTIVOS DADOS DOS POLOS
+      dataPrisma = rowDataPrisma.map(item =>  returnSheetPrisma(item))
+      dataColaborarPolo1  = rowDataColaborarPolo1.map(item => returnSheetColaborar(item))
+      dataColaborarPolo2 = rowDataColaborarPolo2.map(item => returnSheetColaborar(item))
+      dataColaborarPolo3 = rowDataColaborarPolo3.map(item => returnSheetColaborar(item))
      
     }
     
     let filterMatriculaNumberPrisma: string[] = dataPrisma.map(item => item.matriculaAluno)
     const polos = [...dataColaborarPolo1,...dataColaborarPolo2,...dataColaborarPolo3]
-    
-    let filterMatriculaNumberColaborar: NumberAndPhonesColaborarPolo[] = polos.map(item => {
-      return {
-        matricula: item.matricula,
-        phone: item.foneCelular
-      }
-    })
+    let filterMatriculaNumberColaborar = filterMatriculasNumberColaborar(polos)
     //filtra os numeros dos telefones das matriculas iguais, dos que não realizaram a prova e ajusta para não haver símbolos colocando no state
     const matriculaAndPhonesForCall = filterNumbers(filterMatriculaNumberPrisma, filterMatriculaNumberColaborar)
 
+    setExcelFile(undefined)
+   
+    if(fileInputRef.current){
+     console.log(fileInputRef.current.value)
+    }
     setTimeout(() => {
       downloadData(matriculaAndPhonesForCall)
       setLoading(false)
-    }, 5000)
-   
+    }, 3000)
+
   }
   
   
   return(
-    <div className="w-full h-[100vh]  bg-sky-950 flex flex-col items-center gap-10 p-5">
-      <form  onSubmit={handleSubmit} className="flex flex-col gap-4 items-center justify-center ">
-        <h1 className="mb-5 text-3xl">Downlad dos alunos que não realizaram as provas: </h1>
-        <input role="alert" type="file" className="
-        file:bg-slate-900
-        file:p-3
-        file:rounded-2xl
-        file:text-2xl file:py-2 cursor-pointer"  required onChange={handleFile}/>
-         <input role="alert" type="file" className="
-        file:bg-slate-900
-        file:p-3
-        file:rounded-2xl
-        file:text-2xl file:py-2 cursor-pointer"  required onChange={handleFileColaborarPolo1}/>
-         <input role="alert" type="file" className="
-        file:bg-slate-900
-        file:p-3
-        file:rounded-2xl
-        file:text-2xl file:py-2 cursor-pointer"  required onChange={handleFileColaborarPolo2}/>
-         <input role="alert" type="file" className="
-        file:bg-slate-900
-        file:p-3
-        file:rounded-2xl
-        file:text-2xl file:py-2 cursor-pointer"  required onChange={handleFileColaborarPolo3}/>
-
+    <div className="w-full h-screen  bg-sky-950  flex flex-col items-center gap-10 p-5">
+      <form  onSubmit={handleSubmit} className="w-full flex flex-col gap-4  items-center justify-center ">
+        <h1 className="mb-5 text-3xl font-bold">Relatório alunos que não realizaram as provas.</h1>
+       
+        <div className="flex flex-col gap-2 items-start">
+          <span className="text-md font-bold">Planilhas dos que não fizeram a prova:</span>
+          <input role="alert" type="file"
+          ref={fileInputRef}
+          className="
+          file:mx-3
+          file:bg-slate-900
+          file:p-3
+          file:rounded-2xl
+          file:text-xl file:py-2 cursor-pointer"
+          
+          required onChange={handleFile}/>
+        </div>
+        <div className="flex flex-col gap-2 items-start">
+        <span className="text-md font-bold">Planilha Polo I:</span>
+          <input role="alert"
+          ref={fileInputRef}
+           
+          type="file" className="
+           file:mx-3
+                   file:bg-slate-900
+                   file:p-3 
+                   file:rounded-2xl
+                   file:text-xl file:py-2 cursor-pointer"  
+          required onChange={handleFileColaborarPolo1}/>
+        </div>
+        <div className="flex flex-col gap-2 items-start">
+        <span className="text-md font-bold">Planilha Polo II:</span>
+            <input role="alert"
+            ref={fileInputRef}
+            type="file" className="
+             file:mx-3
+                   file:bg-slate-900
+                   file:p-3
+                   file:rounded-2xl
+                   file:text-xl file:py-2 cursor-pointer"  required onChange={handleFileColaborarPolo2}/>
+        </div>
+        <div className="flex flex-col gap-2 items-start">
+        <span className="text-md font-bold">Planilha Polo III:</span>
+          <input role="alert" 
+          ref={fileInputRef}
+          type="file" className="
+          file:bg-slate-900
+          file:p-3
+           file:mx-3
+          file:rounded-2xl
+          file:text-xl file:py-2 cursor-pointer"  required onChange={handleFileColaborarPolo3}/>
+        </div>
         {
-          loading === true ? (
+          loading  ? (
             <div className="w-[50px] h-[50px] border-l-4 border-slate-900 mt-5 rounded-full animate-spin"></div>
           ):
           (
-            <button onClick={() => console.log('Clique detectado')} 
-            type="submit" className="bg-slate-900 w-full py-3 rounded-2xl text-2xl 
+            <button 
+            type="submit" className="bg-slate-900 w-full md:w-[600px] py-3 rounded-2xl text-2xl 
             cursor-pointer">DOWNLOAD
           </button>
         

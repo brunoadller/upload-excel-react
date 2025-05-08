@@ -1,6 +1,6 @@
 import { SetStateAction } from "react"
 
-export const CheckFilePolo = (e: React.ChangeEvent<HTMLInputElement>, setStateError: (str: string | null) => void, setStateFilePolo: (file: File) => void, fileType: string[]) => {
+export const checkFilePolo = (e: React.ChangeEvent<HTMLInputElement>, setStateError: (str: string | null) => void, setStateFilePolo: (file: File) => void, fileType: string[]) => {
     if(e.target.files && e.target.files.length > 0){
         const selectedFileColaborar = e.target.files[0]
         if(selectedFileColaborar){
